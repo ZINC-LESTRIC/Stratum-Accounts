@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ReconAI — Financial Intelligence</title>
+<style>
+:root{
+  --bg:#05080d; --panel:#0b1119; --panel2:#0e1722; --line:#1b2938;
+  --text:#e9f0f7; --muted:#8392a5; --green:#39e6a1; --amber:#f4c65d;
+  --red:#ff5f70; --blue:#68a9ff; --green-dim:#0d2a20;
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 500px at 70% -10%,#112c3a55,transparent),var(--bg);color:var(--text);font:14px Inter,system-ui,-apple-system,sans-serif}
+header{height:66px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:#070b11e8;backdrop-filter:blur(14px);position:sticky;top:0;z-index:20}
+.brand{font-weight:900;letter-spacing:.14em;font-size:16px}
+.brand span{color:var(--green)}
+main{max-width:1400px;margin:auto;padding:26px}
+.toolbar{display:flex;align-items:center;gap:10px}
+.small{font-size:12px;color:var(--muted)}
+button{background:var(--green);color:#03100b;border:0;border-radius:8px;padding:10px 14px;font-weight:800;cursor:pointer;transition:.15s}
+button:hover{filter:brightness(1.08)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.secondary{background:#172231;color:var(--text);border:1px solid var(--line)}
+button.danger{background:#3a1720;color:#ff9daa;border:1px solid #572431}
+.nav{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0}
+.nav button{background:transparent;color:var(--muted);border:1px solid transparent;padding:8px 12px;font-weight:600}
+.nav button.active,.nav button:hover{background:#111b27;color:var(--text);border-color:var(--line)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:13px;padding:17px;box-shadow:0 10px 30px #0003}
+.metric .label,.label{text-transform:uppercase;letter-spacing:.09em;font-size:10px;color:var(--muted)}
+.value{font-size:25px;font-weight:800;margin-top:8px}
+.good{color:var(--green)}.warn{color:var(--amber)}.bad{color:var(--red)}.blue{color:var(--blue)}
+.section{margin-top:20px}
+.section h2{font-size:16px;margin:0 0 12px}
+.recon{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.status{display:inline-block;margin-top:10px;padding:5px 9px;border-radius:999px;font-size:10px;text-transform:uppercase;border:1px solid var(--line);font-weight:700}
+.status.good{background:var(--green-dim);border-color:#1a4a35;color:var(--green)}
+.status.warn{background:#2a2210;border-color:#4a3a15;color:var(--amber)}
+.status.bad{background:#2a1218;border-color:#4a1a25;color:var(--red)}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
+.table{width:100%;border-collapse:collapse;min-width:650px}
+.table th,.table td{padding:11px;border-bottom:1px solid var(--line);text-align:left}
+.table th{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.table tr:hover td{background:#0c1520}
+.form{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.form label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em}
+.form input,.form select,.form textarea{width:100%;padding:11px;background:#070d15;color:var(--text);border:1px solid var(--line);border-radius:8px;font:inherit}
+.form input:focus,.form select:focus,.form textarea:focus{outline:none;border-color:#2a4a6a}
+.form textarea{min-height:90px;resize:vertical}
+.full{grid-column:1/-1}
+.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px}
+.login{max-width:430px;margin:100px auto}
+.kpi{font-variant-numeric:tabular-nums}
+.chat{max-height:480px;overflow:auto;padding-right:6px}
+.msg{padding:12px 14px;border-radius:10px;margin:8px 0;white-space:pre-wrap;line-height:1.45}
+.msg.user{background:#132235;margin-left:12%}
+.msg.ai{background:#0b1512;border:1px solid #17382b;margin-right:12%}
+.toast{position:fixed;bottom:24px;right:24px;background:#0e1a14;border:1px solid #1a4a35;color:var(--green);padding:12px 18px;border-radius:10px;font-weight:700;z-index:50;box-shadow:0 8px 30px #0006;animation:fadeIn .25s}
+.toast.error{background:#1a1014;border-color:#4a1a25;color:var(--red)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.loading{opacity:.55;pointer-events:none}
+.stmt-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+.stmt-row.total{font-weight:800;border-top:1px solid var(--line);margin-top:6px;padding-top:12px}
+.stmt-section{margin-bottom:18px}
+.stmt-section h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+@media(max-width:1100px){.grid{grid-template-columns:repeat(2,1fr)}.recon{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){main{padding:14px}.grid,.recon,.form,.grid-2{grid-template-columns:1fr}.hero{display:block}header{padding:0 14px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">RECON<span>AI</span></div>
+  <div class="toolbar">
+    <span id="biz" class="small"></span>
+    <button class="secondary" onclick="logout()">Log out</button>
+  </div>
+</header>
+<main id="app"></main>
+
+<script>
+const $ = s => document.querySelector(s);
+let email = localStorage.email;
+let token = localStorage.token || '';
+let active = 'dashboard';
+let currency = 'PKR';
+
+// API base URL for split deployment (Vercel frontend → Railway backend)
+// Local same-origin: leave empty. Production: set via window.RECONAI_API_BASE or localStorage.apiBase
+const API_BASE = (window.RECONAI_API_BASE || localStorage.getItem('apiBase') || '').replace(/\/$/, '');
+function apiUrl(path) {
+  if (!path) return API_BASE || '/';
+  if (path.startsWith('http')) return path;
+  return API_BASE + path;
+}
+
+function money(v) {
+  if (v === null || v === undefined || v === '') return '—';
+  const n = Number(v);
+  if (isNaN(n)) return String(v);
+  return n.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function toast(msg, isError = false) {
+  const t = document.createElement('div');
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+async function api(url, opt = {}) {
+  opt.headers = {...(opt.headers || {}), 'Content-Type': 'application/json'};
+  if (token) opt.headers.Authorization = 'Bearer ' + token;
+  const activeBiz = localStorage.businessId;
+  if (activeBiz) opt.headers['X-Business-ID'] = activeBiz;
+  const r = await fetch(apiUrl(url), opt);
+  let d;
+  try { d = await r.json(); } catch { d = {}; }
+  if (!r.ok) throw Error(typeof d.detail === 'string' ? d.detail : (d.detail?.[0]?.msg || 'Request failed'));
+  return d;
+}
+
+async function logout() {
+  try { await fetch(apiUrl('/api/auth/logout'), {method: 'POST', headers: token ? {Authorization: 'Bearer ' + token} : {}}); } catch {}
+  localStorage.removeItem('email');
+  localStorage.removeItem('token');
+  localStorage.removeItem('businessId');
+  location.reload();
+}
+
+function loginView() {
+  document.body.innerHTML = `
+  <div class="login card">
+    <div class="brand">RECON<span>AI</span></div>
+    <h2 style="margin:16px 0 6px">Financial intelligence for your business</h2>
+    <p class="small">Deterministic accounting. Reconciliation. AI analysis on top of verified data.</p>
+    <div class="form" style="margin-top:18px">
+      <div class="full"><label>Email</label><input id="email" type="email" placeholder="you@business.com"></div>
+      <div class="full"><label>Password</label><input id="pw" type="password" placeholder="Min 8 characters"></div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:10px">
+      <button onclick="doLogin()">Sign in</button>
+      <button class="secondary" onclick="doRegister()">Create account</button>
+    </div>
+    <p id="msg" class="small" style="margin-top:12px;color:var(--red)"></p>
+  </div>`;
+}
+
+async function doRegister() {
+  try {
+    email = $('#email').value.trim();
+    const r = await fetch(apiUrl('/api/auth/register'), {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password: $('#pw').value})});
+    const d = await r.json();
+    if (!r.ok) throw Error(d.detail || 'Registration failed');
+    token = d.token;
+    localStorage.email = email;
+    localStorage.token = token;
+    location.reload();
+  } catch (e) { $('#msg').textContent = e.message; }
+}
+
+async function doLogin() {
+  try {
+    email = $('#email').value.trim();
+    const r = await fetch(apiUrl('/api/auth/login'), {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password: $('#pw').value})});
+    const d = await r.json();
+    if (!r.ok) throw Error(d.detail || 'Login failed');
+    token = d.token;
+    localStorage.email = email;
+    localStorage.token = token;
+    location.reload();
+  } catch (e) { $('#msg').textContent = e.message; }
+}
+
+function setupView() {
+  document.body.innerHTML = `
+  <div class="login card">
+    <div class="brand">RECON<span>AI</span></div>
+    <h2 style="margin:16px 0 6px">Set up your business</h2>
+    <p class="small">Create your first business to start recording transactions.</p>
+    <div class="form" style="margin-top:18px">
+      <div class="full"><label>Business name</label><input id="bn" value="Kashmir Corndog"></div>
+      <div><label>Type</label><input id="bt" value="Food Stall"></div>
+      <div><label>Currency</label><input id="cur" value="PKR"></div>
+      <div class="full"><label>Opening cash</label><input id="oc" type="number" value="100000" step="0.01"></div>
+    </div>
+    <div style="margin-top:16px"><button onclick="createBiz()">Create business</button></div>
+  </div>`;
+}
+
+async function createBiz() {
+  try {
+    const b = await api('/api/business', {method: 'POST', body: JSON.stringify({
+      name: $('#bn').value, business_type: $('#bt').value, currency: $('#cur').value, opening_cash: $('#oc').value || 0
+    })});
+    localStorage.businessId = b.id;
+    toast('Business created');
+    location.reload();
+  } catch (e) { toast(e.message, true); }
+}
+
+const PAGES = {
+  dashboard: 'Business Overview',
+  products: 'Products & Inventory Items',
+  sales: 'Sales',
+  purchases: 'Purchases',
+  expenses: 'Expenses',
+  inventory: 'Inventory Control',
+  bank: 'Bank',
+  recon: 'Reconciliation Center',
+  statements: 'Financial Statements',
+  journal: 'Accounting Ledger',
+  audit: 'Audit Trail',
+  anomalies: 'Anomaly Monitor',
+  ai: 'AI Reconciliation Analyst'
+};
+
+function shell(content) {
+  const nav = Object.entries(PAGES).map(([k, label]) =>
+    `<button class="${active === k ? 'active' : ''}" onclick="go('${k}')">${label.split(' ')[0]}</button>`
+  ).join('');
+  $('#app').innerHTML = `
+    <div class="hero">
+      <div>
+        <div class="label">ReconAI / ${active}</div>
+        <h1 style="margin:6px 0">${PAGES[active] || active}</h1>
+      </div>
+      <button onclick="go('ai')">Analyze My Business</button>
+    </div>
+    <div class="nav">${nav}</div>
+    <div id="view">${content}</div>`;
+}
+
+async function go(x) {
+  active = x;
+  await render();
+}
+
+async function render() {
+  try {
+    const b = await api('/api/business');
+    currency = b.currency || 'PKR';
+    $('#biz').textContent = b.name + ' · ' + currency;
+    const handlers = {
+      dashboard, products: productsPage, sales, purchases, expenses,
+      inventory, bank, recon: reconPage, statements, journal, audit,
+      anomalies: anomaliesPage, ai
+    };
+    const fn = handlers[active] || dashboard;
+    await fn();
+  } catch (e) {
+    if (String(e.message).includes('Business setup') || String(e.message).includes('400')) setupView();
+    else toast(e.message, true);
+  }
+}
+
+function metric(n, v, c = '') {
+  return `<div class="card metric"><div class="label">${n}</div><div class="value kpi ${c}">${currency} ${money(v)}</div></div>`;
+}
+
+function reconCard(name, x) {
+  const st = x.status || 'review';
+  const cls = st === 'reconciled' ? 'good' : (st === 'discrepancy' ? 'bad' : 'warn');
+  let extra = '';
+  if (x.difference !== undefined && x.difference !== null) extra += `<div style="margin-top:8px">Difference: <b>${currency} ${money(x.difference)}</b></div>`;
+  if (x.expected !== undefined) extra += `<div class="small" style="margin-top:4px">Expected ${currency} ${money(x.expected)}</div>`;
+  if (x.actual !== undefined && x.actual !== null) extra += `<div class="small">Actual ${currency} ${money(x.actual)}</div>`;
+  if (x.unmatched !== undefined) extra += `<div class="small" style="margin-top:4px">Unmatched: ${x.unmatched}</div>`;
+  return `<div class="card"><div class="label">${name}</div>${extra}<span class="status ${cls}">${st.replace('_', ' ')}</span></div>`;
+}
+
+/* ---------- Pages ---------- */
+
+async function dashboard() {
+  const [d, r] = await Promise.all([api('/api/dashboard'), api('/api/reconciliation')]);
+  shell(`
+    <div class="grid">
+      ${metric('Today Sales', d.today.sales)}
+      ${metric('Today Expenses', d.today.expenses)}
+      ${metric('Gross Profit', d.today.gross_profit, 'good')}
+      ${metric('Net Profit', d.today.net_profit, Number(d.today.net_profit) >= 0 ? 'good' : 'bad')}
+      ${metric('Cash on Hand', d.cash_on_hand)}
+      ${metric('Bank Balance', d.bank_balance)}
+      ${metric('Inventory Value', d.inventory_value)}
+      ${metric('Accounting Integrity', d.accounting_equation_ok ? 'OK' : 'ERROR', d.accounting_equation_ok ? 'good' : 'bad')}
+    </div>
+    <div class="section">
+      <h2>Reconciliation Status</h2>
+      <div class="recon">
+        ${reconCard('Cash', r.cash)}
+        ${reconCard('Bank', r.bank)}
+        ${reconCard('Inventory', r.inventory)}
+        ${reconCard('Purchases', r.purchases)}
+        ${reconCard('Sales', r.sales)}
+      </div>
+    </div>
+    <div class="section grid">
+      <div class="card"><div class="label">Core engine</div><h2>Double-entry ledger</h2><p class="small">Every posted transaction must balance before commit.</p><button class="secondary" onclick="go('journal')">Open Ledger</button></div>
+      <div class="card"><div class="label">Control</div><h2>Physical cash</h2><p class="small">Compare actual cash with the deterministic ledger.</p><button class="secondary" onclick="go('recon')">Enter Count</button></div>
+      <div class="card"><div class="label">Inventory</div><h2>Stock control</h2><p class="small">Expected quantity vs physical count.</p><button class="secondary" onclick="go('inventory')">Open Inventory</button></div>
+      <div class="card"><div class="label">AI</div><h2>Facts first</h2><p class="small">AI explains verified records but cannot alter them.</p><button class="secondary" onclick="go('ai')">Open Analyst</button></div>
+    </div>`);
+}
+
+async function productsPage() {
+  const ps = await api('/api/products');
+  shell(`
+    <div class="card">
+      <h2>Add product / inventory item</h2>
+      <div class="form">
+        <div><label>Item name</label><input id="prn" placeholder="Corndog"></div>
+        <div><label>SKU</label><input id="prs" placeholder="CD-001"></div>
+        <div><label>Unit</label><input id="pru" value="pcs"></div>
+        <div><label>Opening unit cost</label><input id="prc" type="number" step="0.01" value="0"></div>
+        <div class="full"><label>Opening quantity</label><input id="prq" type="number" step="0.001" value="0"></div>
+      </div>
+      <div style="margin-top:14px"><button onclick="saveProduct()">Create Product</button></div>
+    </div>
+    <div class="section card">
+      <h2>Products</h2>
+      <div class="tablewrap"><table class="table">
+        <tr><th>Name</th><th>SKU</th><th>Unit</th><th>Unit Cost</th><th>Opening Qty</th></tr>
+        ${ps.length ? ps.map(p => `<tr><td>${p.name}</td><td>${p.sku || '—'}</td><td>${p.unit}</td><td>${currency} ${money(p.unit_cost)}</td><td>${p.opening_quantity}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">No products yet</td></tr>'}
+      </table></div>
+    </div>`);
+}
+
+async function saveProduct() {
+  try {
+    await api('/api/products', {method: 'POST', body: JSON.stringify({
+      name: $('#prn').value, sku: $('#prs').value, unit: $('#pru').value,
+      unit_cost: $('#prc').value || 0, opening_quantity: $('#prq').value || 0
+    })});
+    toast('Product created');
+    productsPage();
+  } catch (e) { toast(e.message, true); }
+}
+
+async function sales() {
+  const ps = await api('/api/products');
+  if (!ps.length) {
+    shell(`<div class="card notice"><p>Create a product first before recording sales.</p><button class="secondary" onclick="go('products')">Go to Products</button></div>`);
+    return;
+  }
+  shell(`
+    <div class="card">
+      <h2>Record sale</h2>
+      <div class="form">
+        <div><label>Date</label><input id="sd" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+        <div><label>Product</label><select id="sp">${ps.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
+        <div><label>Quantity</label><input id="sq" type="number" step="0.001" placeholder="10"></div>
+        <div><label>Unit price</label><input id="su" type="number" step="0.01" placeholder="350"></div>
+        <div><label>Discount</label><input id="sdsc" type="number" step="0.01" value="0"></div>
+        <div><label>Payment method</label><select id="sm"><option>Cash</option><option>Bank</option><option>Card</option><option>Mobile wallet</option><option>Credit</option></select></div>
+        <div><label>Customer (optional)</label><input id="sc" placeholder="Walk-in"></div>
+        <div><label>Notes</label><input id="sn" placeholder=""></div>
+      </div>
+      <div style="margin-top:14px"><button onclick="saveSale()">Post Sale</button></div>
+    </div>`);
+}
+
+async function saveSale() {
+  try {
+    const d = await api('/api/sales', {method: 'POST', body: JSON.stringify({
+      txn_date: $('#sd').value, product_id: +$('#sp').value, quantity: $('#sq').value,
+      unit_price: $('#su').value, discount: $('#sdsc').value || 0,
+      payment_method: $('#sm').value, customer: $('#sc').value || null, notes: $('#sn').value || null
+    })});
+    toast('Sale posted: ' + currency + ' ' + money(d.total));
+    go('dashboard');
+  } catch (e) { toast(e.message, true); }
+}
+
+async function purchases() {
+  const ps = await api('/api/products');
+  if (!ps.length) {
+    shell(`<div class="card notice"><p>Create a product first before recording purchases.</p><button class="secondary" onclick="go('products')">Go to Products</button></div>`);
+    return;
+  }
+  shell(`
+    <div class="card">
+      <h2>Record purchase</h2>
+      <div class="form">
+        <div><label>Date</label><input id="pd" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+        <div><label>Supplier</label><input id="psup" placeholder="Supplier name"></div>
+        <div><label>Product / material</label><select id="pp">${ps.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
+        <div><label>Quantity</label><input id="pq" type="number" step="0.001"></div>
+        <div><label>Unit cost</label><input id="pc" type="number" step="0.01"></div>
+        <div><label>Payment method</label><select id="pm"><option>Cash</option><option>Bank</option><option>Credit</option></select></div>
+        <div><label>Invoice number</label><input id="pinv"></div>
+        <div><label>Notes</label><input id="pn"></div>
+      </div>
+      <div style="margin-top:14px"><button onclick="savePurchase()">Post Purchase</button></div>
+    </div>`);
+}
+
+async function savePurchase() {
+  try {
+    await api('/api/purchases', {method: 'POST', body: JSON.stringify({
+      txn_date: $('#pd').value, supplier: $('#psup').value, product_id: +$('#pp').value,
+      quantity: $('#pq').value, unit_cost: $('#pc').value, payment_method: $('#pm').value,
+      invoice_number: $('#pi
