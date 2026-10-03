@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: reconai
+      POSTGRES_USER: reconai
+      POSTGRES_PASSWORD: change-me
+    volumes:
+      - reconai_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reconai -d reconai"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://reconai:change-me@db:5432/reconai
+      RECONAI_JWT_SECRET: replace-with-a-long-random-secret
+      RECONAI_AUTO_CREATE_SCHEMA: "true"
+      RECONAI_DEV_HEADER_AUTH: "false"
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.openai.com/v1/chat/completions}
+      LLM_MODEL: ${LLM_MODEL:-gpt-4.1-mini}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  reconai_pg:
